@@ -49,12 +49,22 @@ de ambiente reais.
 - Cabeçalhos de segurança em toda resposta (`next.config.ts`):
   HSTS, `X-Content-Type-Options`, `X-Frame-Options`,
   `Permissions-Policy`, e uma CSP em modo *report-only*.
-- Rate limiting (`src/lib/rate-limit.ts`) usado nas rotas sensíveis.
+- Rate limiting (`src/lib/rate-limit.ts`) cobre as rotas sensíveis:
+  ações de conta/convite, envio/broadcast/reação do WhatsApp, todas
+  as rotas de IA — e a **API pública `/api/v1`**, aplicado de forma
+  centralizada por API key em `src/lib/auth/api-context.ts:99`, não
+  rota por rota. Limitação a registrar: é em memória por processo
+  (`RATE_LIMITS`, comentário no topo do arquivo) — não sobrevive a
+  múltiplas instâncias/regiões; escalar horizontalmente exige trocar
+  por Redis/Upstash mantendo a mesma assinatura de `check`.
 - Dockerfile multi-stage (standalone output, usuário não-root) +
-  `docker-compose.yml` prontos (`docs/docker.md`).
-- Deploy testado em três caminhos: Hostinger (Node.js gerenciado),
-  Docker/VPS, ou qualquer host Node (Vercel, Railway) — é MIT e
-  roda em qualquer lugar.
+  `docker-compose.yml` prontos (`docs/docker.md`). Validei nesta
+  análise que `npm run build` completa sem erro; não cheguei a
+  validar um deploy real em nenhum dos três caminhos abaixo.
+- Três caminhos de hospedagem documentados: Hostinger (Node.js
+  gerenciado — é como o `main` do upstream é servido), Docker/VPS
+  (usando o Dockerfile acima), ou qualquer host Node (Vercel,
+  Railway) — é MIT, roda em qualquer lugar.
 
 ## 4. Checklist de configuração antes do go-live
 
@@ -67,9 +77,13 @@ de ambiente reais.
 - [ ] Conferir que a extensão `vector` está disponível caso queira
       busca semântica na base de conhecimento de IA (migration 030
       já tenta `CREATE EXTENSION IF NOT EXISTS vector`).
-- [ ] Configurar backups automáticos do banco (Supabase Pro faz
-      backup diário; no plano free não há — decidir o plano antes
-      do go-live com dados reais).
+- [ ] Configurar backups automáticos do banco e **decidir o plano
+      antes de colocar dados reais**: o plano Free do Supabase não
+      tem backup automático (e pausa o projeto após 1 semana sem
+      uso); o Pro inclui snapshot diário do Postgres com retenção de
+      7 dias (não cobre Storage buckets nem Edge Functions), e PITR
+      granular é um add-on pago no Pro/Team.
+      [Fonte](https://axonbuild.com/blog/supabase-backup/).
 - [ ] Copiar `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
       e `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API).
 
@@ -96,11 +110,23 @@ Baseado em `.env.local.example`:
 no fim), `NEXT_PUBLIC_APP_LOCALE`.
 
 **Opcionais**: `ALLOWED_INVITE_HOSTS` (recomendado se o app ficar
-exposto sem proxy confiável na frente), `AUTOMATION_CRON_SECRET`
-(obrigatória apenas se usar passos "Wait" em automações — configurar
-o pinger externo, ver `docs/automations-and-cron.md` no site),
+exposto sem proxy confiável na frente), `AUTOMATION_CRON_SECRET`,
 `META_APP_ID`, `WHATSAPP_TEMPLATES_DRY_RUN` (deixar **desligada**
 em produção).
+
+> `.env.local.example` aponta pra `docs/automations-and-cron.md` para
+> mais detalhes sobre `AUTOMATION_CRON_SECRET` — esse arquivo **não
+> existe neste repositório**, só no site de docs do upstream
+> (`wacrm.tech`, que §7.2 já marca pra ser removido do README). Para
+> não depender de um link que deixa de fazer sentido: a variável
+> protege dois endpoints, `GET /api/automations/cron` e
+> `GET /api/flows/cron` (`src/app/api/automations/cron/route.ts`,
+> `src/app/api/flows/cron/route.ts`), que só existem porque passos de
+> espera ("Wait") em automações/flows não têm um timer interno — algo
+> externo (cron do provedor, Vercel Cron, ou um uptime pinger) precisa
+> bater nessas rotas periodicamente com o header `x-cron-secret`
+> igual ao valor da variável. Sem isso configurado, execuções pendentes
+> com espera simplesmente nunca são retomadas.
 
 - [ ] Confirmar que `WHATSAPP_TEMPLATES_DRY_RUN` não está setada
       (ou está `false`) no ambiente de produção.
@@ -124,6 +150,16 @@ Três caminhos, todos documentados:
 
 ## 5. Segurança — itens a decidir antes do go-live
 
+- [ ] **`CODEOWNERS` aponta para o mantenedor upstream, não para
+      vocês** (`.github/CODEOWNERS:8`: `* @ArnasDon`). O próprio
+      comentário no arquivo explica a intenção original: combinado
+      com uma regra de proteção de branch que exige aprovação do code
+      owner, todo PR contra `main` fica preso esperando aprovação de
+      alguém de fora da organização de vocês. Se a proteção de branch
+      do upstream foi copiada junto no fork (verificar em Settings →
+      Branches no GitHub), **isso bloqueia qualquer merge do time**,
+      não é só um detalhe de branding — trocar para o time interno
+      antes de depender de PRs.
 - [ ] **Ativar a CSP de verdade.** Hoje ela roda como
       `Content-Security-Policy-Report-Only` (`next.config.ts:39`) —
       só reporta violação no console, não bloqueia nada. Depois de
@@ -134,8 +170,9 @@ Três caminhos, todos documentados:
 - [ ] Definir uma política de rotação de `ENCRYPTION_KEY` — trocar o
       valor invalida tokens do WhatsApp já salvos (usuários precisam
       reconectar).
-- [ ] Revisar `.github/CODEOWNERS` e proteção da branch `main` no
-      GitHub (exigir CI verde antes de merge).
+- [ ] Configurar proteção da branch `main` no GitHub para o time
+      (exigir CI verde antes de merge) — depois de corrigir o
+      `CODEOWNERS` acima, não antes.
 
 ## 6. Itens de qualidade a limpar (não bloqueiam produção)
 
@@ -194,6 +231,9 @@ pessoa errada. Como o projeto é interno:
 
 ### 7.4 Fluxo de contribuição externa — simplificar, já que é interno
 Como decidido (projeto interno, não open-source colaborativo):
+- [ ] `.github/CODEOWNERS` — ver §5, é o item mais urgente desta
+      seção (pode estar bloqueando merges agora mesmo, não é só
+      branding).
 - [ ] `.github/ISSUE_TEMPLATE/*.yml` — hoje pedem pra seguir
       `SECURITY.md`/`CONTRIBUTING.md` do upstream. Simplificar para o
       fluxo interno da equipe (ou remover, se usarem outro rastreador).
@@ -237,6 +277,9 @@ separada do rebranding visual:
 
 ## 8. Resumo — pronto para ir ao ar quando
 
+0. **Verificar agora, independente do resto**: `.github/CODEOWNERS`
+   (§5) — se a proteção de branch do `main` exige aprovação do code
+   owner, o time não consegue mergear nada até isso ser corrigido.
 1. Projeto Supabase de produção criado e migrations aplicadas.
 2. App da Meta configurado com webhook em HTTPS e número validado.
 3. Todas as variáveis obrigatórias/recomendadas definidas no
