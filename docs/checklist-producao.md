@@ -150,16 +150,13 @@ Três caminhos, todos documentados:
 
 ## 5. Segurança — itens a decidir antes do go-live
 
-- [ ] **`CODEOWNERS` aponta para o mantenedor upstream, não para
-      vocês** (`.github/CODEOWNERS:8`: `* @ArnasDon`). O próprio
-      comentário no arquivo explica a intenção original: combinado
-      com uma regra de proteção de branch que exige aprovação do code
-      owner, todo PR contra `main` fica preso esperando aprovação de
-      alguém de fora da organização de vocês. Se a proteção de branch
-      do upstream foi copiada junto no fork (verificar em Settings →
-      Branches no GitHub), **isso bloqueia qualquer merge do time**,
-      não é só um detalhe de branding — trocar para o time interno
-      antes de depender de PRs.
+- [x] **`CODEOWNERS` corrigido** — trocado de `* @ArnasDon` para
+      `* @empresaeras-del` (`.github/CODEOWNERS`), a única conta com
+      acesso a este repositório (confirmado via API do GitHub:
+      `empresaeras-del` é o único collaborator, com role `admin`).
+      Falta só: [ ] confirmar em Settings → Branches se existe (ou
+      vai existir) uma regra de proteção do `main` exigindo aprovação
+      de code owner — sem isso, o arquivo não tem efeito prático.
 - [ ] **Ativar a CSP de verdade.** Hoje ela roda como
       `Content-Security-Policy-Report-Only` (`next.config.ts:39`) —
       só reporta violação no console, não bloqueia nada. Depois de
@@ -231,9 +228,7 @@ pessoa errada. Como o projeto é interno:
 
 ### 7.4 Fluxo de contribuição externa — simplificar, já que é interno
 Como decidido (projeto interno, não open-source colaborativo):
-- [ ] `.github/CODEOWNERS` — ver §5, é o item mais urgente desta
-      seção (pode estar bloqueando merges agora mesmo, não é só
-      branding).
+- [x] `.github/CODEOWNERS` — corrigido, ver §5.
 - [ ] `.github/ISSUE_TEMPLATE/*.yml` — hoje pedem pra seguir
       `SECURITY.md`/`CONTRIBUTING.md` do upstream. Simplificar para o
       fluxo interno da equipe (ou remover, se usarem outro rastreador).
@@ -277,9 +272,8 @@ separada do rebranding visual:
 
 ## 8. Resumo — pronto para ir ao ar quando
 
-0. **Verificar agora, independente do resto**: `.github/CODEOWNERS`
-   (§5) — se a proteção de branch do `main` exige aprovação do code
-   owner, o time não consegue mergear nada até isso ser corrigido.
+0. ~~`.github/CODEOWNERS` apontando pro mantenedor upstream~~ —
+   corrigido. Falta só confirmar a proteção de branch do `main` (§5).
 1. Projeto Supabase de produção criado e migrations aplicadas.
 2. App da Meta configurado com webhook em HTTPS e número validado.
 3. Todas as variáveis obrigatórias/recomendadas definidas no
