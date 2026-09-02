@@ -6,6 +6,6 @@ contact_links:
   - name: Setup / "how do I..." questions
     url: https://github.com/empresaeras-del/erascrm/blob/main/README.md
     about: Check the docs first — setup, deploy, troubleshooting are all covered.
-  - name: Using this as a template (forking)
+  - name: Contributing guide
     url: https://github.com/empresaeras-del/erascrm/blob/main/CONTRIBUTING.md
-    about: This is a template. Most changes belong in your fork, not an upstream issue — here's how that works.
+    about: Dev-loop, PR flow, and how to pull in upstream fixes.

@@ -1,6 +1,6 @@
 # Security Policy
 
-Thanks for taking the time to look into the security of this template.
+Thanks for taking the time to look into the security of this project.
 
 ## Reporting a vulnerability
 
@@ -59,4 +59,4 @@ action against anyone who:
 - Gives us reasonable time to respond before any public disclosure.
 - Doesn't exploit the issue beyond what's necessary to demonstrate it.
 
-Thanks for helping keep this template (and its forks) safe.
+Thanks for helping keep this project safe.

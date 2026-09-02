@@ -220,11 +220,12 @@ implica, por categoria:
       qualquer — não inventei um e-mail interno. Se vocês quiserem um
       segundo canal além do GitHub Security Advisories, adicionem o
       contato real de vocês nessa mesma linha.
-- [ ] `.github/CODE_OF_CONDUCT.md` — ainda não mexi. Não tinha
-      pointer quebrado (não cita `ArnasDon` diretamente), mas é o
-      mesmo tipo de arquivo pensado pra colaboradores externos. Como
-      decidido que o projeto é interno: decidir se mantém (com
-      contato de vocês) ou remove.
+- [x] `.github/CODE_OF_CONDUCT.md` — **removido**. Não tinha pointer
+      quebrado (não citava `ArnasDon` diretamente), mas era um
+      Contributor Covenant formal com contato de aplicação apontando
+      pro e-mail do mantenedor upstream — sentido só em projeto com
+      colaboradores externos. Recuperável do histórico do git se
+      mudarem de ideia.
 
 ### 7.4 Fluxo de contribuição externa — simplificar, já que é interno
 Como decidido (projeto interno, não open-source colaborativo):
@@ -243,18 +244,27 @@ Como decidido (projeto interno, não open-source colaborativo):
       `wacrm.tech`). Redirecionei para o `README.md` da raiz do
       repo em vez de inventar um `docs/README.md`; vale conferir se
       faz sentido ou se preferem apontar pra outro lugar.
-      O *conteúdo* desses templates (texto pensado para forkers
-      externos avaliando o template) ainda não foi tocado — só os
-      links quebrados. Simplificar ou remover o conteúdo continua em
-      aberto, é decisão de vocês.
-- [ ] `CONTRIBUTING.md` — hoje é um guia de "fork → PR upstream" e
-      "se você mantém um fork público". Como não haverá contribuição
-      externa, vale reescrever como guia interno de dev-loop (scripts,
-      convenção de commit) e remover as seções voltadas a
-      colaboradores de fora. Os 3 links internos desse arquivo que
-      apontam pra `ArnasDon/wacrm` (fork/clone/issues) ainda não
-      foram corrigidos — ficaram fora do escopo desta rodada (focada
-      em `.github/`), mas caem no mesmo padrão.
+      O *conteúdo* também foi ajustado: `feature_request.yml` não
+      fala mais em "isto é um template, sua ideia provavelmente
+      pertence ao seu fork" — como agora é o produto de vocês, pedido
+      de feature aqui é legítimo. `bug_report.yml` trocou a linguagem
+      de "template" por "app". `config.yml` trocou o contato "Using
+      this as a template (forking)" por um link genérico pro
+      `CONTRIBUTING.md`. `.github/pull_request_template.md` também
+      perdeu o aviso "most changes belong in your fork" no topo e a
+      menção a "forkers" no rodapé.
+      `.github/SECURITY.md` teve mais dois ajustes de texto ("this
+      template" → "this project", 2 ocorrências).
+- [x] `CONTRIBUTING.md` — reescrito como guia interno de dev-loop
+      (clone, rodar local, trazer correções do upstream, fluxo de PR,
+      tabela de comandos). Removidas as seções "Upstream pull
+      requests" e "If you maintain a public fork" (não fazem mais
+      sentido: não há PR de terceiros, e o rebranding já está em
+      andamento nesta mesma sessão). **Mantive** a seção de puxar
+      correções do upstream (`git remote add upstream
+      ArnasDon/wacrm`) — isso continua útil mesmo sendo interno, é
+      sobre receber patches de segurança do template original, não
+      sobre contribuir de volta.
 
 ### 7.5 Identificadores funcionais com "wacrm" — não é só cosmético
 Diferente do resto, estes têm efeito em contrato/protocolo, não só
