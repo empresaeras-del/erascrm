@@ -148,21 +148,92 @@ depois do go-live, sem urgência:
   settings-overview,whatsapp-config}.tsx` (dependências de hook)
 - `src/i18n/request.ts`, `src/middleware.ts` (variáveis não usadas)
 
-## 7. Identidade do fork — decisão do time
+## 7. Identidade do fork
 
-Este repositório (`empresaeras-del/erascrm`) é hoje um fork
-idêntico ao `wacrm`, sem nenhuma customização de marca. Antes de
-divulgar publicamente como produto próprio, decidir:
+Este repositório (`empresaeras-del/erascrm`) é hoje um fork idêntico
+ao `wacrm`, sem nenhuma customização. Decisões já tomadas pelo time:
+**projeto interno** (sem fluxo de contribuição externa), **nome
+"erascrm"**, **remover o link de afiliado Hostinger**. O que isso
+implica, por categoria:
 
-- [ ] Nome do produto exibido (`package.json` → `name`, título das
-      páginas, `README.md`).
-- [ ] Remover/atualizar links que apontam para `ArnasDon/wacrm` e
-      `wacrm.tech` no README, `package.json` (`homepage`,
-      `repository`, `bugs`) e `.github/SECURITY.md` (email e link de
-      advisory apontam para o mantenedor upstream).
-- [ ] Manter o aviso de licença MIT e a atribuição ao autor original
-      (`LICENSE`) — é exigido pela licença, independentemente da
-      marca escolhida.
+### 7.1 Obrigatório manter — é a licença, não branding
+- [ ] `LICENSE` (texto MIT) permanece no repo. É a única exigência
+      real da licença; atribuição ao autor original em outro lugar
+      (README, etc.) é "appreciated but not required" — o próprio
+      `CONTRIBUTING.md:101-104` do upstream confirma isso.
+
+### 7.2 Branding visível — cosmético, baixo risco, renomear para "erascrm"
+- [ ] `package.json`: `name`, `author`, `homepage`, `repository.url`,
+      `bugs.url` (linhas 2, 7, 8, 11, 14).
+- [ ] `src/app/layout.tsx:24-26` — título/descrição das páginas
+      (`"wacrm"` / `"%s — wacrm"`).
+- [ ] `docker-compose.yml:1` — `name: wacrm` (nome do projeto Compose,
+      só aparece em `docker ps` / `docker compose ls`).
+- [ ] `README.md` — título, badges (`CI`, `Stars`, ambos hoje apontam
+      pro repo `ArnasDon/wacrm`), seção "Deploy on Hostinger" e todos
+      os links `wacrm.tech/docs/*` (não existe doc equivalente para
+      vocês ainda — ou removem a seção ou substituem por instruções
+      próprias, já que `docs/checklist-producao.md` cobre parte disso).
+      **Remover** os links com `REFERRALCODE=WACRMHOST` (afiliado do
+      autor original), conforme decidido.
+
+### 7.3 Contato de segurança/conduta — trocar ou remover, não deixar como está
+Hoje `.github/SECURITY.md` e `.github/CODE_OF_CONDUCT.md` apontam
+para o e-mail pessoal do mantenedor upstream
+(`a.donauskas@hostinger.com`) e para
+`github.com/ArnasDon/wacrm/security/advisories`. Deixar assim **não é
+neutro**: um relatório de vulnerabilidade nesse fork iria parar na
+pessoa errada. Como o projeto é interno:
+- [ ] Decidir se faz sentido manter um `SECURITY.md` formal (só é
+      útil se houver gente de fora com acesso ao código/relatando
+      bugs) ou substituí-lo por uma linha simples apontando pro canal
+      interno de segurança/TI da empresa.
+- [ ] Mesma decisão para `.github/CODE_OF_CONDUCT.md` — normalmente
+      existe para projetos com colaboradores externos; num projeto
+      interno pode ser removido sem perda.
+
+### 7.4 Fluxo de contribuição externa — simplificar, já que é interno
+Como decidido (projeto interno, não open-source colaborativo):
+- [ ] `.github/ISSUE_TEMPLATE/*.yml` — hoje pedem pra seguir
+      `SECURITY.md`/`CONTRIBUTING.md` do upstream. Simplificar para o
+      fluxo interno da equipe (ou remover, se usarem outro rastreador).
+- [ ] `.github/dependabot.yml:12,50` — `reviewers: [ArnasDon]`. Trocar
+      pelo usuário/time interno que deve revisar PRs do Dependabot
+      (ou remover o campo, se não fizer sentido restringir revisor).
+- [ ] `CONTRIBUTING.md` — hoje é um guia de "fork → PR upstream" e
+      "se você mantém um fork público". Como não haverá contribuição
+      externa, vale reescrever como guia interno de dev-loop (scripts,
+      convenção de commit) e remover as seções voltadas a
+      colaboradores de fora.
+
+### 7.5 Identificadores funcionais com "wacrm" — não é só cosmético
+Diferente do resto, estes têm efeito em contrato/protocolo, não só
+em nome exibido. Ainda sem risco agora (fork pré-lançamento, sem
+integrações externas usando o formato atual), mas tratar como decisão
+separada do rebranding visual:
+- [ ] `API_KEY_PREFIX = 'wacrm_live_'` (`src/lib/api-keys/keys.ts:25`)
+      — prefixo de toda API key pública (`/api/v1`). Pensado para
+      scanners de segredo (GitGuardian etc.) reconhecerem o padrão.
+      Trocar para `erascrm_live_` é seguro agora, mas depois do
+      go-live viraria uma mudança que invalida chaves existentes.
+- [ ] Header `X-Wacrm-Signature` (assinatura HMAC dos webhooks —
+      `src/lib/webhooks/sign.ts`, `src/app/api/v1/webhooks/route.ts`)
+      — contrato que qualquer consumidor de webhook precisa checar.
+      Mesma lógica: trocar agora é de graça, depois quebra integrações.
+- [ ] Chaves de `localStorage` (`wacrm.theme`, `wacrm.mode`,
+      `wacrm.flowEditor.view`, `wacrm:inbox:contact-panel-open`) —
+      puramente internas ao navegador, nunca visíveis ao usuário.
+      Baixíssima prioridade; só reseta preferências salvas.
+
+### 7.6 Não mexer
+- [ ] `CHANGELOG.md` — histórico factual de quando o código foi
+      desenvolvido no upstream (links de issues/PRs `ArnasDon/wacrm`).
+      Reescrever isso falsificaria o histórico; manter como está.
+- [ ] `mcp-server/` — pacote separado (`wacrm-mcp`), publicado no npm
+      pelo autor original. Só decidir algo aqui se vocês pretendem
+      expor a API via MCP: aí sim é uma decisão à parte (usar o
+      pacote npm oficial como está, ou fazer fork e publicar o de
+      vocês sob outro nome).
 
 ## 8. Resumo — pronto para ir ao ar quando
 
@@ -172,7 +243,8 @@ divulgar publicamente como produto próprio, decidir:
    provedor de hosting escolhido.
 4. CSP promovida de report-only para enforce.
 5. Backups do Supabase configurados.
-6. (Opcional, mas recomendado) decisões de marca do §7 resolvidas.
+6. Rebranding visual (§7.2-7.4) aplicado — decidido: interno, nome
+   "erascrm", sem link de afiliado Hostinger.
 
 O código em si — CI, testes, build, segurança de aplicação — já
 está pronto; nada nesta lista é bloqueado por bugs no template.
