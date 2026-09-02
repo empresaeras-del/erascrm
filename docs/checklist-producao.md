@@ -196,20 +196,30 @@ implica, por categoria:
       (README, etc.) é "appreciated but not required" — o próprio
       `CONTRIBUTING.md:101-104` do upstream confirma isso.
 
-### 7.2 Branding visível — cosmético, baixo risco, renomear para "erascrm"
-- [ ] `package.json`: `name`, `author`, `homepage`, `repository.url`,
-      `bugs.url` (linhas 2, 7, 8, 11, 14).
-- [ ] `src/app/layout.tsx:24-26` — título/descrição das páginas
-      (`"wacrm"` / `"%s — wacrm"`).
-- [ ] `docker-compose.yml:1` — `name: wacrm` (nome do projeto Compose,
-      só aparece em `docker ps` / `docker compose ls`).
-- [ ] `README.md` — título, badges (`CI`, `Stars`, ambos hoje apontam
-      pro repo `ArnasDon/wacrm`), seção "Deploy on Hostinger" e todos
-      os links `wacrm.tech/docs/*` (não existe doc equivalente para
-      vocês ainda — ou removem a seção ou substituem por instruções
-      próprias, já que `docs/checklist-producao.md` cobre parte disso).
-      **Remover** os links com `REFERRALCODE=WACRMHOST` (afiliado do
-      autor original), conforme decidido.
+### 7.2 Branding visível — feito
+- [x] `package.json` — `name: "erascrm"`, `author: "empresaeras-del"`,
+      `homepage`/`repository.url`/`bugs.url` apontando pra
+      `empresaeras-del/erascrm`. `description` também perdeu a palavra
+      "template".
+- [x] `src/app/layout.tsx:24-28` — título/descrição das páginas
+      (`"erascrm"` / `"%s — erascrm"`; descrição sem "template").
+- [x] `docker-compose.yml:1` — `name: erascrm`.
+- [x] `README.md` — reescrito: título sem "Template", badges `CI`
+      apontando pra `empresaeras-del/erascrm` (badge `Stars` removido —
+      não faz sentido em repo interno), removida a seção promocional
+      "Deploy on Hostinger" (imagens + link de afiliado
+      `REFERRALCODE=WACRMHOST`) e todos os links `wacrm.tech/docs/*` —
+      substituídos por uma seção "Documentation" apontando pros docs
+      locais (`docs/checklist-producao.md`, `docs/docker.md`,
+      `docs/public-api.md`, `docs/mcp.md`). A seção "Why fork this?"
+      (que vendia a ideia de fazer fork) também saiu — não se aplica
+      mais, isto já é o produto de vocês. Confirmei com `npm run
+      lint/typecheck/test/build` depois da mudança: tudo passando,
+      833 testes.
+      **Não mexi** em `.github/assets/hostinger-deploy.png` (o arquivo
+      de imagem promocional) — ficou órfão (nada mais referencia),
+      mas é só um binário sem link nenhum agora; podem apagar quando
+      quiserem, não tem pressa.
 
 ### 7.3 Contato de segurança/conduta
 - [x] `.github/SECURITY.md` — o link de GitHub Security Advisories
@@ -266,24 +276,49 @@ Como decidido (projeto interno, não open-source colaborativo):
       sobre receber patches de segurança do template original, não
       sobre contribuir de volta.
 
-### 7.5 Identificadores funcionais com "wacrm" — não é só cosmético
-Diferente do resto, estes têm efeito em contrato/protocolo, não só
-em nome exibido. Ainda sem risco agora (fork pré-lançamento, sem
-integrações externas usando o formato atual), mas tratar como decisão
-separada do rebranding visual:
-- [ ] `API_KEY_PREFIX = 'wacrm_live_'` (`src/lib/api-keys/keys.ts:25`)
-      — prefixo de toda API key pública (`/api/v1`). Pensado para
-      scanners de segredo (GitGuardian etc.) reconhecerem o padrão.
-      Trocar para `erascrm_live_` é seguro agora, mas depois do
-      go-live viraria uma mudança que invalida chaves existentes.
-- [ ] Header `X-Wacrm-Signature` (assinatura HMAC dos webhooks —
-      `src/lib/webhooks/sign.ts`, `src/app/api/v1/webhooks/route.ts`)
-      — contrato que qualquer consumidor de webhook precisa checar.
-      Mesma lógica: trocar agora é de graça, depois quebra integrações.
-- [ ] Chaves de `localStorage` (`wacrm.theme`, `wacrm.mode`,
-      `wacrm.flowEditor.view`, `wacrm:inbox:contact-panel-open`) —
-      puramente internas ao navegador, nunca visíveis ao usuário.
-      Baixíssima prioridade; só reseta preferências salvas.
+### 7.5 Identificadores funcionais — feito
+Diferente do branding, estes têm efeito em contrato/protocolo, não só
+em nome exibido. Como o fork ainda não foi ao ar (sem chaves de API
+nem integrações de webhook reais em uso), trocar agora não invalida
+nada de ninguém — feito nesta rodada:
+- [x] `API_KEY_PREFIX`: `wacrm_live_` → `erascrm_live_`
+      (`src/lib/api-keys/keys.ts:25`) — prefixo de toda API key
+      pública (`/api/v1`), pensado pra scanners de segredo (GitGuardian
+      etc.) reconhecerem o padrão. Atualizado também nos comentários,
+      nos testes (`keys.test.ts`, `api-context.test.ts`) e nos
+      exemplos de `docs/public-api.md`.
+- [x] Headers de webhook: `X-Wacrm-Event` / `X-Wacrm-Webhook-Id` /
+      `X-Wacrm-Signature` → `X-Erascrm-*`
+      (`src/lib/webhooks/deliver.ts`, `sign.ts`,
+      `app/api/v1/webhooks/route.ts`, `docs/public-api.md`, e o teste
+      `deliver.test.ts`).
+- [x] Chaves de `localStorage` (`wacrm.theme`, `wacrm.mode`,
+      `wacrm.flowEditor.view`, `wacrm:inbox:contact-panel-open` →
+      `erascrm.*`) — sem risco, só reseta preferências locais já
+      salvas no navegador de quem usou o app antes desta mudança.
+- [x] **Achado à parte, não era branding**: o fallback de
+      `getBaseUrl()` em `src/app/api/account/invitations/route.ts`
+      retornava `https://wacrm.tech` (o site do template original,
+      fora do controle de vocês) quando não dava pra determinar o
+      domínio a partir da requisição. Isso significava que, no pior
+      caso, um link de convite gerado por essa API podia apontar pro
+      site de outra empresa. Troquei para lançar um erro (vira 500,
+      já existe try/catch cobrindo) em vez de inventar um domínio —
+      configurem `NEXT_PUBLIC_SITE_URL` (§4.3) e esse caminho nunca é
+      exercitado na prática.
+- Dois textos **visíveis ao usuário** também tinham "wacrm" — não
+  eram só comentário de código: a mensagem de erro "Each phone number
+  can only be connected to one wacrm user" em
+  `src/app/api/whatsapp/config/route.ts`, e o texto padrão "our wacrm
+  account" usado na mensagem de convite por WhatsApp em
+  `invite-member-dialog.tsx` quando o nome da conta ainda não
+  carregou. Ambos corrigidos para "erascrm".
+- **Deixei de fora, de propósito**: duas strings `'wacrm'` que são
+  dado de teste arbitrário, não identidade de marca —
+  `registration.test.ts` (nome mockado de um app retornado pela API
+  da Meta) e `invitations.test.ts` (domínio de exemplo
+  `wacrm.example`, no estilo `example.com`). Renomear não muda
+  comportamento nenhum, é só ruído no diff.
 
 ### 7.6 Não mexer
 - [ ] `CHANGELOG.md` — histórico factual de quando o código foi
@@ -305,8 +340,11 @@ separada do rebranding visual:
    provedor de hosting escolhido.
 4. CSP promovida de report-only para enforce.
 5. Backups do Supabase configurados.
-6. Rebranding visual (§7.2-7.4) aplicado — decidido: interno, nome
-   "erascrm", sem link de afiliado Hostinger.
+6. ~~Rebranding (§7.1-7.5)~~ — feito: interno, nome "erascrm", sem
+   link de afiliado Hostinger, identificadores funcionais (prefixo de
+   API key, headers de webhook) renomeados. Falta só §7.6 (`mcp-server/`
+   — decisão à parte, opcional) e revisar se o redirecionamento do
+   link "Setup / how do I" nos templates de issue (§7.4) faz sentido.
 
 O código em si — CI, testes, build, segurança de aplicação — já
-está pronto; nada nesta lista é bloqueado por bugs no template.
+está pronto; nada nesta lista é bloqueado por bugs no projeto.
