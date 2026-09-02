@@ -46,10 +46,13 @@ import {
 //      operator to set an env var.
 //   3. `Host` header + the protocol the request arrived on —
 //      bare deployments without a proxy.
-//   4. Last-resort marketing-site fallback. Only hit if the
-//      request has no Host header at all, which is essentially
-//      impossible from a real browser. Logs a warning so the
-//      operator can spot the misconfig.
+//   4. Failure. Only hit if the request has no Host header at all
+//      (essentially impossible from a real browser) or
+//      `ALLOWED_INVITE_HOSTS` rejected both candidates. Throws —
+//      caught by the route's try/catch and turned into a 500 —
+//      rather than fabricating a URL that points somewhere we
+//      don't control. Logs a warning first so the operator can
+//      spot the misconfig.
 //
 // Defense-in-depth: `ALLOWED_INVITE_HOSTS`
 //
@@ -63,16 +66,18 @@ import {
 //
 //   When `ALLOWED_INVITE_HOSTS` is set (comma-separated hostnames),
 //   we validate the derived host against the list. Anything not
-//   on the list falls through to the wacrm.tech fallback with a
-//   loud console.warn. Operators who care about this attack
-//   surface should set this to their canonical hostnames; everyone
-//   else gets today's permissive behavior.
+//   on the list fails loudly (#4 above) with a console.warn.
+//   Operators who care about this attack surface should set this
+//   to their canonical hostnames; everyone else gets today's
+//   permissive behavior.
 //
 // Previous implementation hard-defaulted to `https://wacrm.tech`
-// (the docs/marketing site, a different repo). Forks that didn't
-// set `NEXT_PUBLIC_SITE_URL` got invite links pointing at the
-// marketing site, which 404s on `/join/<token>`. This resolution
-// chain removes the foot-gun.
+// (the upstream template's marketing site, a domain this fork does
+// not control). Forks that didn't set `NEXT_PUBLIC_SITE_URL` and
+// hit this path got invite links pointing at someone else's site.
+// Failing the request instead of guessing a domain removes that
+// foot-gun for good — set `NEXT_PUBLIC_SITE_URL` and this path
+// never fires in practice.
 function parseAllowedHosts(): readonly string[] | null {
   const raw = process.env.ALLOWED_INVITE_HOSTS?.trim();
   if (!raw) return null;
@@ -128,10 +133,12 @@ function getBaseUrl(request: Request): string {
     );
   } else {
     console.warn(
-      "[POST /api/account/invitations] could not derive base URL from request; falling back to marketing domain",
+      "[POST /api/account/invitations] could not derive base URL from request",
     );
   }
-  return "https://wacrm.tech";
+  throw new Error(
+    "Could not determine the base URL for the invite link. Set NEXT_PUBLIC_SITE_URL.",
+  );
 }
 
 const MAX_LABEL_LEN = 80;
