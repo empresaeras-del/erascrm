@@ -211,35 +211,50 @@ implica, por categoria:
       **Remover** os links com `REFERRALCODE=WACRMHOST` (afiliado do
       autor original), conforme decidido.
 
-### 7.3 Contato de segurança/conduta — trocar ou remover, não deixar como está
-Hoje `.github/SECURITY.md` e `.github/CODE_OF_CONDUCT.md` apontam
-para o e-mail pessoal do mantenedor upstream
-(`a.donauskas@hostinger.com`) e para
-`github.com/ArnasDon/wacrm/security/advisories`. Deixar assim **não é
-neutro**: um relatório de vulnerabilidade nesse fork iria parar na
-pessoa errada. Como o projeto é interno:
-- [ ] Decidir se faz sentido manter um `SECURITY.md` formal (só é
-      útil se houver gente de fora com acesso ao código/relatando
-      bugs) ou substituí-lo por uma linha simples apontando pro canal
-      interno de segurança/TI da empresa.
-- [ ] Mesma decisão para `.github/CODE_OF_CONDUCT.md` — normalmente
-      existe para projetos com colaboradores externos; num projeto
-      interno pode ser removido sem perda.
+### 7.3 Contato de segurança/conduta
+- [x] `.github/SECURITY.md` — o link de GitHub Security Advisories
+      agora aponta pra `empresaeras-del/erascrm` (era
+      `ArnasDon/wacrm`), o texto de escopo também. **Removi** a linha
+      de e-mail pessoal do mantenedor upstream
+      (`a.donauskas@hostinger.com`) em vez de trocar por um contato
+      qualquer — não inventei um e-mail interno. Se vocês quiserem um
+      segundo canal além do GitHub Security Advisories, adicionem o
+      contato real de vocês nessa mesma linha.
+- [ ] `.github/CODE_OF_CONDUCT.md` — ainda não mexi. Não tinha
+      pointer quebrado (não cita `ArnasDon` diretamente), mas é o
+      mesmo tipo de arquivo pensado pra colaboradores externos. Como
+      decidido que o projeto é interno: decidir se mantém (com
+      contato de vocês) ou remove.
 
 ### 7.4 Fluxo de contribuição externa — simplificar, já que é interno
 Como decidido (projeto interno, não open-source colaborativo):
 - [x] `.github/CODEOWNERS` — corrigido, ver §5.
-- [ ] `.github/ISSUE_TEMPLATE/*.yml` — hoje pedem pra seguir
-      `SECURITY.md`/`CONTRIBUTING.md` do upstream. Simplificar para o
-      fluxo interno da equipe (ou remover, se usarem outro rastreador).
-- [ ] `.github/dependabot.yml:12,50` — `reviewers: [ArnasDon]`. Trocar
-      pelo usuário/time interno que deve revisar PRs do Dependabot
-      (ou remover o campo, se não fizer sentido restringir revisor).
+- [x] `.github/dependabot.yml:12,50` — `reviewers: [ArnasDon]` trocado
+      por `empresaeras-del` (mesma lógica do CODEOWNERS: era um
+      revisor obrigatório sem acesso ao repo).
+- [x] `.github/ISSUE_TEMPLATE/*.yml` — os 4 links que apontavam para
+      `ArnasDon/wacrm` (security advisories, `CONTRIBUTING.md`, e o
+      link de "SECURITY.md" no `bug_report.yml`) agora apontam para
+      `empresaeras-del/erascrm`. **Uma ressalva**: o link de "Setup /
+      how do I" em `config.yml` apontava para
+      `ArnasDon/wacrm/blob/main/docs/README.md` — esse arquivo **não
+      existe nem no upstream nem aqui** (era provavelmente um link
+      morto já antes do fork, ou pensado pro site externo
+      `wacrm.tech`). Redirecionei para o `README.md` da raiz do
+      repo em vez de inventar um `docs/README.md`; vale conferir se
+      faz sentido ou se preferem apontar pra outro lugar.
+      O *conteúdo* desses templates (texto pensado para forkers
+      externos avaliando o template) ainda não foi tocado — só os
+      links quebrados. Simplificar ou remover o conteúdo continua em
+      aberto, é decisão de vocês.
 - [ ] `CONTRIBUTING.md` — hoje é um guia de "fork → PR upstream" e
       "se você mantém um fork público". Como não haverá contribuição
       externa, vale reescrever como guia interno de dev-loop (scripts,
       convenção de commit) e remover as seções voltadas a
-      colaboradores de fora.
+      colaboradores de fora. Os 3 links internos desse arquivo que
+      apontam pra `ArnasDon/wacrm` (fork/clone/issues) ainda não
+      foram corrigidos — ficaram fora do escopo desta rodada (focada
+      em `.github/`), mas caem no mesmo padrão.
 
 ### 7.5 Identificadores funcionais com "wacrm" — não é só cosmético
 Diferente do resto, estes têm efeito em contrato/protocolo, não só
